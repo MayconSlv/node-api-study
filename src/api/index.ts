@@ -1,15 +1,32 @@
-import http from 'node:http';
+import http, { IncomingMessage, ServerResponse } from 'node:http';
 import { helloRoute } from './rest/hello.resolver';
+
+declare module 'http' {
+  interface IncomingMessage {
+    body?: any;
+  }
+}
 
 export class Server {
   private readonly server: http.Server;
 
   constructor() {
-    this.server = http.createServer((req, res) => this.configure(req, res))
+    this.server = http.createServer((req: IncomingMessage, res: ServerResponse) => this.configure(req, res))
   }
 
-  configure(req: http.IncomingMessage, res: http.ServerResponse) {
+  async configure(req: http.IncomingMessage, res: http.ServerResponse) {
     const { method, url } = req;
+
+    const buffers = [];
+    for await (const chunk of req) {
+      buffers.push(chunk);
+    }
+
+    try {
+      req.body = JSON.parse(Buffer.concat(buffers).toString());
+    } catch (error) {
+      req.body = null;
+    }
 
     const route = helloRoute.find((route) => {
       return route.method === method && route.path === url;
