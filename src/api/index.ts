@@ -1,7 +1,8 @@
-import http, { IncomingMessage, ServerResponse } from 'node:http';
-import { helloRoute } from './rest/hello.resolver';
+import http, { IncomingMessage, ServerResponse } from "node:http";
+import { helloRoute } from "./rest/hello.resolver";
+import { DBConnection } from "../data/prisma";
 
-declare module 'http' {
+declare module "http" {
   interface IncomingMessage {
     body?: any;
   }
@@ -11,7 +12,9 @@ export class Server {
   private readonly server: http.Server;
 
   constructor() {
-    this.server = http.createServer((req: IncomingMessage, res: ServerResponse) => this.configure(req, res))
+    this.server = http.createServer(
+      (req: IncomingMessage, res: ServerResponse) => this.configure(req, res)
+    );
   }
 
   async configure(req: http.IncomingMessage, res: http.ServerResponse) {
@@ -30,16 +33,18 @@ export class Server {
 
     const route = helloRoute.find((route) => {
       return route.method === method && route.path === url;
-    })
+    });
 
     if (route) {
-      return route.exec(req, res)
+      return route.exec(req, res);
     }
 
-    return res.writeHead(404).end()
+    return res.writeHead(404).end();
   }
 
   run(): void {
-    this.server.listen(3000, () => console.log('server is running on https://localhost:3000'))
+    this.server.listen(3000, () =>
+      console.log("server is running on https://localhost:3000")
+    );
   }
 }
